@@ -14,3 +14,4 @@ The data are stored as a CSV and as a pickled pandas dataframe (Python 2.7). Eac
   0 - hate speech
   1 - offensive  language
   2 - neither
+https://beta.deepnote.com/article/automated-hate-speech-detection/
