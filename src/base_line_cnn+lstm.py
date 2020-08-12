@@ -30,8 +30,8 @@ class HateSpeech:
     EPOCHS = 10
     BATCH_SIZE = 30
     SEED = 8
-    INPUT_PATH = os.path.join(os.path.dirname(__file__), 'input/') if os.environ.get('EXECUTION_ENV') is None else '/input'
-    OUTPUT_PATH = os.path.join(os.path.dirname(__file__), 'output/') if os.environ.get('EXECUTION_ENV') is None else '/output'
+    INPUT_PATH = os.path.join(os.path.dirname(__file__), '../data') if os.environ.get('EXECUTION_ENV') is None else './data'
+    OUTPUT_PATH = os.path.join(os.path.dirname(__file__), '../model') if os.environ.get('EXECUTION_ENV') is None else '../model'
 
     def __init__(self, load_weights=False, training=False):
         '''
@@ -54,6 +54,7 @@ class HateSpeech:
 
         if training:
             X, self.Y = self._get_data()
+#             pdb.set_trace()
             documents = self._clean_documents(X[:,0])
             vocabulary = self._get_vocabulary(documents)
             vocab_size = len(vocabulary) + 1
@@ -82,7 +83,7 @@ class HateSpeech:
         if self.training: return None, "Cannot predict when in training!"
 
         try:
-            X = np.reshape(X, (1,8)) # ensure it is the right shape for predicting
+            X = np.reshape(X, (1,4)) # ensure it is the right shape for predicting
             classes = self.model.predict_classes(X, batch_size=self.BATCH_SIZE)
             return classes, "Success!"
         except ValueError as error:
@@ -99,10 +100,10 @@ class HateSpeech:
 
         if self.training:
             np.random.seed(self.SEED)
-            weights_path = os.path.join(self.OUTPUT_PATH, 'weights.best.hdf5')
-            checkpoint = ModelCheckpoint(weights_path, monitor='val_binary_accuracy', verbose=1, save_best_only=True, mode='max')
-            callbacks_list = [checkpoint]
-            self.model.fit(self.X, self.Y, validation_split=0.2, epochs=self.EPOCHS, batch_size=self.BATCH_SIZE, verbose=1, callbacks=callbacks_list)
+#             weights_path = os.path.join(self.OUTPUT_PATH, 'weights.best.hdf5')
+#             checkpoint = ModelCheckpoint(weights_path, monitor='val_binary_accuracy', verbose=1, save_best_only=True, mode='max')
+#             callbacks_list = [checkpoint]
+            self.model.fit(self.X, self.Y, validation_split=0.2, epochs=self.EPOCHS, batch_size=self.BATCH_SIZE, verbose=1)#, callbacks=callbacks_list)
         else:
             print("You did not instanciate this class for training!")
 
@@ -120,6 +121,7 @@ class HateSpeech:
     def _clean_documents(self, documents):
         # convert to list
         documents = documents.tolist()
+#         pdb.set_trace()
         # clean docs
         print("Starting cleaning %s documents" % len(documents))
         documents = [self._clean_doc(doc) for doc in documents]
@@ -172,23 +174,26 @@ class HateSpeech:
 
     def _get_data(self):
         try:
-            csv_path = os.path.join(self.INPUT_PATH, 'labeled_data.csv')
-            X = pd.read_csv(csv_path, sep=',', header=None, error_bad_lines=False) # use pandas to read CSV
+            csv_path = os.path.join(self.INPUT_PATH, 'dataset.csv')
+            X = pd.read_csv(csv_path, sep=',', error_bad_lines=False) # use pandas to read CSV
             X = X.dropna() # drop any rows with nans
+            X.drop(X[(X['text_id'] == 'text_id')].index,inplace=True)
+            X.drop(X[(X['hate'] == 'HS')].index,inplace=True)
+            X.rename(columns={'hate':'class'},inplace=True)
+#             pdb.set_trace()
+            # pick neutral instances
+            neutral = X['class'] == '0'
 
             # pick hateful instances
-            hateful = X[5] == 0
-
-            # pick neutral instances
-            neutral = X[5] == 2
+            hateful = X['class'] == '1'
 
             # filter
             X = X[hateful | neutral]
             X = np.asarray(X) # convert to array
-
+#             pdb.set_trace()
             # balance data into 50% / 50% according to Y
-            idx_0 = np.where(X[:, 5] == 0)[0]
-            idx_1 = np.where(X[:, 5] == 2)[0]
+            idx_0 = np.where(X[:, 2] == '0')[0]
+            idx_1 = np.where(X[:, 2] == '1')[0]
             n = min(idx_0.size, idx_1.size)
             idx_d = max([idx_0, idx_1], key=len)
             np.random.shuffle(idx_d)
@@ -196,9 +201,12 @@ class HateSpeech:
             np.delete(X, idx_d, 0)
 
             # split into X and Y
-            Y = X[:, 5] # grab last column
-            Y[Y == 2] = 1 # swap 2 for 1
-            X = X[:, np.r_[6]] # grab 7 first columns
+            Y = X[:, 2] # grab last column
+            Y[Y == '1'] = 1 
+            Y[Y == '0'] = 0
+            
+            X = X[:, np.r_[1]] # grab 7 first columns
+#             pdb.set_trace()
             return X, Y
         except ValueError:
             return None, None
@@ -207,5 +215,5 @@ class HateSpeech:
 if __name__ == '__main__':
 	nltk.download('punkt')
 	nltk.download('stopwords')
-	model = HateSpeech(training=True)
+	model = HateSpeech(load_weights=False,training=True)
 
