@@ -232,7 +232,7 @@ class features():
 
 if __name__ == '__main__':
     fe = features()
-    tweets = ['!!!!! RT @mleew17: boy dats cold...tyga dwn bad for cuffin dat hoes in the 1st place!! #NoTrump 😀', 
+    tweets = ['!!!!! RT @mleew17: boy dats cold...tyga dwn bad for cuffin dat hoes in the 1st place!! #notrump =/ 😀', 
               '!!!!!!! RT @UrKindOfBrand Dawg!!!! RT @80sbaby4life: You ever fuck a bitch and she start to cry? You be confused as shit',
               '!!!!!!!!! RT @C_G_Anderson: @viva_based she look like a tranny',
               '!!!!!!!!!!!!! RT @ShenikaRoberts: The shit you hear about me might be true or it might be faker than the bitch who told it to ya &#57361;', 
