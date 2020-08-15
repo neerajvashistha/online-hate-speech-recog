@@ -10,6 +10,7 @@ import pdb
 from ekphrasis.classes.preprocessor import TextPreProcessor
 from ekphrasis.classes.tokenizer import SocialTokenizer
 from ekphrasis.dicts.emoticons import emoticons
+from ekphrasis.dicts.noslang.slang import slang
 
 class features():
     stopwords = nltk.corpus.stopwords.words("english")
@@ -23,11 +24,11 @@ class features():
     
     text_processor = TextPreProcessor(
         # terms that will be normalized
-        normalize=['email', 'percent', 'money', 'phone',
-            'time', 'date', 'number'],
+        normalize=['url', 'email', 'percent', 'money', 'phone', 'user',
+            'time', 'url', 'date', 'number'],
         # terms that will be annotated
-#         annotate={"hashtag", "allcaps", "elongated", "repeated",
-#             'emphasis', 'censored'},
+        annotate={"hashtag", "allcaps", "elongated", "repeated",
+            'emphasis', 'censored'},
         fix_html=True,  # fix HTML tokens
 
         # corpus from which the word statistics are going to be used 
@@ -44,11 +45,11 @@ class features():
 
         # select a tokenizer. You can use SocialTokenizer, or pass your own
         # the tokenizer, should take as input a string and return a list of tokens
-        tokenizer=nltk.WordPunctTokenizer().tokenize,
+        tokenizer=SocialTokenizer(lowercase=True).tokenize,
 
         # list of dictionaries, for replacing tokens extracted from the text,
         # with other expressions. You can pass more than one dictionaries.
-        dicts=[emoticons]
+        dicts=[emoticons,slang]
     )
 
     def preprocess(self,text_string):
@@ -61,9 +62,11 @@ class features():
         This allows us to get standardized counts of urls and mentions
         Without caring about specific people mentioned
         """
-        
-        text_string = " ".join(self.text_processor.pre_process_doc(text_string))
-        
+        stp_tags = ['<allcaps>','</allcaps>','<hashtag>','</hashtag>','<repeated>','<date>','<elongated>','<url>','<email>','<percent>','<phone>','<date>','<number>']
+        words = self.text_processor.pre_process_doc(text_string)
+#         pdb.set_trace()
+        words = [w.replace('<','').replace('>','') for w in words if not w in stp_tags and (len(w) > 2 or w in string.punctuation)]
+        text_string = " ".join(words)
         space_pattern = '\s+'
         giant_url_regex = ('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|'
             '[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
@@ -71,10 +74,7 @@ class features():
         parsed_text = re.sub(mention_regex, '', text_string)
         parsed_text = re.sub(space_pattern, ' ', parsed_text)
         parsed_text = re.sub(giant_url_regex, '', parsed_text)
-        
-        
-        
-        
+#         pdb.set_trace()
         return parsed_text
 
     def tokenize(self,tweet):
@@ -178,7 +178,7 @@ class features():
         sentiment = self.sentiment_analyzer.polarity_scores(tweet)
 
         words = self.preprocess(tweet) #Get text only
-        pdb.set_trace()
+#         pdb.set_trace()
         syllables = textstat.syllable_count(words)
         num_chars = sum(len(w) for w in words)
         num_chars_total = len(tweet)
@@ -232,7 +232,7 @@ class features():
 
 if __name__ == '__main__':
     fe = features()
-    tweets = ['!!!!! RT @mleew17: boy dats cold...tyga dwn bad for cuffin dat hoes in the 1st place!! #notrump =/ 😀', 
+    tweets = ["!!!!! RT @mleew17: boy dats cold...tyga dwn bad we'll for cuffin dat hoes in the 1st place!! #notrump =/ 😀", 
               '!!!!!!! RT @UrKindOfBrand Dawg!!!! RT @80sbaby4life: You ever fuck a bitch and she start to cry? You be confused as shit',
               '!!!!!!!!! RT @C_G_Anderson: @viva_based she look like a tranny',
               '!!!!!!!!!!!!! RT @ShenikaRoberts: The shit you hear about me might be true or it might be faker than the bitch who told it to ya &#57361;', 
