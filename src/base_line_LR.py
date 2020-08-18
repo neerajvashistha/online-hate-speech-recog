@@ -10,6 +10,7 @@ import numpy as np
 import seaborn
 import pandas as pd
 import matplotlib.pyplot as plt
+import pickle
 
 class LR():
     X_train = None
@@ -18,7 +19,7 @@ class LR():
     y_test = None
     
     def train(self, X, y, max_iter, test_size, param_grid=[{}]):
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, random_state=42, test_size=test_size)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y,shuffle=True, random_state=42, test_size=test_size, stratify=y)
         pipe = Pipeline(
                 [('select', SelectFromModel(LogisticRegression(class_weight='balanced',
                                                           penalty="l2", C=0.01, max_iter=max_iter ))),
@@ -28,7 +29,8 @@ class LR():
         grid_search = GridSearchCV(pipe, 
                            param_grid,
                            cv=StratifiedKFold(n_splits=5, 
-                                              random_state=42).split(self.X_train, self.y_train), 
+                                              random_state=42, 
+                                              shuffle=True).split(self.X_train, self.y_train), 
                            verbose=2,
                            n_jobs=-1
                           )
@@ -60,3 +62,12 @@ class LR():
         plt.ylabel(r'True categories',fontsize=14)
         plt.xlabel(r'Predicted categories',fontsize=14)
         plt.tick_params(labelsize=12)
+    
+    def save_model(model,path):
+        print("Writing Model to file")
+        pickle.dump(model, open(path, 'wb'))
+        print("Done!")
+        
+    def load_model(path):
+        print('Loading Model from file')
+        return pickle.load(open(path, 'rb'))

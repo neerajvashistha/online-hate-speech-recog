@@ -28,7 +28,7 @@ class features():
         self.stemmer = None
         self.sentiment_analyzer = None
         self.text_processor = None        
-        INDIC_NLP_RESOURCES=r"/home/nv/project/online-hate-speech-recog/model/indic_nlp_resources/"        
+        INDIC_NLP_RESOURCES=r"/homes/nv304/online-hate-speech-recog/model/indic_nlp_resources/"        
         common.set_resources_path(INDIC_NLP_RESOURCES)
         self.pos_tagger = None
 
@@ -130,7 +130,7 @@ class features():
         """Removes punctuation & excess whitespace, sets to lowercase,
         and stems tweets. Returns a list of stemmed tokens."""
         if self.lang=='en':
-            tweet = " ".join(re.split("[^a-zA-Z]*", tweet.lower())).strip()
+            tweet = " ".join([w for w in re.split("[^a-zA-Z]*", tweet.lower()) if w not in self.stopwords]).strip()
             tokens = [self.stemmer.stem(t) for t in tweet.split()]
             return tokens
         if self.lang=='hi':
@@ -153,7 +153,7 @@ class features():
             tokenizer=self.tokenize,
             preprocessor=self.preprocess,
             ngram_range=(1, 3),
-            stop_words=self.stopwords if self.lang == 'en' else None,
+            stop_words=None,
             use_idf=True,
             smooth_idf=False,
             norm=None,
@@ -336,6 +336,9 @@ class features():
 
 if __name__ == '__main__':
     nltk.download('averaged_perceptron_tagger')
+    nltk.download('indian')
+    from inltk.inltk import setup
+    setup('hi')
     # fe = features(lang='en')
 
     # tweets = ["!!!!! RT @mleew17: boy dats cold...tyga dwn bad we'll for cuffin dat hoes in the 1st place!! #notrump =/ 😀", 

@@ -1,4 +1,5 @@
 # taken from https://github.com/leandrotoledo/python-telegram-bot/blob/master/telegram/emoji.py,
+
 emoji = {
     '\\xf0\\x9f\\x98\\x81':"<grinning face with smiling eyes>",
     '\\xf0\\x9f\\x98\\x82':"<face with tears of joy>",
@@ -833,3 +834,16 @@ emoji = {
     '\\xf0\\x9f\\x95\\xa6':"<clock face eleven thirty>",
     '\\xf0\\x9f\\x95\\xa7':"<clock face twelve thirt>y"
 }
+
+def emoji_clean(x):
+    import re
+    g = re.search(r'\\x[a-z0-9]([^<]*)', x, re.IGNORECASE)
+    if g:
+        g = g.group()
+#         print(g)
+        el = list(emoji.keys())
+
+        for i in el:
+            if i in g:
+                x = x.replace(g,' '+emoji[i]).replace('<','').replace('>','')
+    return x
