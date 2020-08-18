@@ -48,20 +48,31 @@ class LR():
             y_test = self.y_test
         return classification_report(y_test, y_pred)
     
-    def gen_confusion_matrix(self, y_test = None, y_pred = None):
+    def gen_confusion_matrix(self, y_test = None, y_pred = None, classes = 3):
         if not y_test:
             y_test = self.y_test
         confusion_mat = confusion_matrix(y_test, y_pred)
         matrix_proportions = np.zeros((3,3))
-        for i in range(0,3):
-            matrix_proportions[i,:] = confusion_mat[i,:]/float(confusion_mat[i,:].sum())
-        names=['Hate','Offensive','Neither']
-        confusion_df = pd.DataFrame(matrix_proportions, index=names,columns=names)
-        plt.figure(figsize=(5,5))
-        seaborn.heatmap(confusion_df,annot=True,annot_kws={"size": 12},cmap='gist_gray_r',cbar=False, square=True,fmt='.2f')
-        plt.ylabel(r'True categories',fontsize=14)
-        plt.xlabel(r'Predicted categories',fontsize=14)
-        plt.tick_params(labelsize=12)
+        if classes ==3:
+            for i in range(0,3):
+                matrix_proportions[i,:] = confusion_mat[i,:]/float(confusion_mat[i,:].sum())
+            names=['Hate','Offensive','Neither']
+            confusion_df = pd.DataFrame(matrix_proportions, index=names,columns=names)
+            plt.figure(figsize=(5,5))
+            seaborn.heatmap(confusion_df,annot=True,annot_kws={"size": 12},cmap='gist_gray_r',cbar=False, square=True,fmt='.2f')
+            plt.ylabel(r'True categories',fontsize=14)
+            plt.xlabel(r'Predicted categories',fontsize=14)
+            plt.tick_params(labelsize=12)
+        if classes == 2:
+            for i in range(0,2):
+                matrix_proportions[i,:] = confusion_mat[i,:]/float(confusion_mat[i,:].sum())
+            names=['Hate','Neither']
+            confusion_df = pd.DataFrame(matrix_proportions, index=names,columns=names)
+            plt.figure(figsize=(5,5))
+            seaborn.heatmap(confusion_df,annot=True,annot_kws={"size": 12},cmap='gist_gray_r',cbar=False, square=True,fmt='.2f')
+            plt.ylabel(r'True categories',fontsize=14)
+            plt.xlabel(r'Predicted categories',fontsize=14)
+            plt.tick_params(labelsize=12)
     
     def save_model(model,path):
         print("Writing Model to file")
