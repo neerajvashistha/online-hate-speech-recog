@@ -52,8 +52,9 @@ class LR():
         if not y_test:
             y_test = self.y_test
         confusion_mat = confusion_matrix(y_test, y_pred)
-        matrix_proportions = np.zeros((3,3))
+        
         if classes ==3:
+            matrix_proportions = np.zeros((3,3))
             for i in range(0,3):
                 matrix_proportions[i,:] = confusion_mat[i,:]/float(confusion_mat[i,:].sum())
             names=['Hate','Offensive','Neither']
@@ -64,6 +65,7 @@ class LR():
             plt.xlabel(r'Predicted categories',fontsize=14)
             plt.tick_params(labelsize=12)
         if classes == 2:
+            matrix_proportions = np.zeros((2,2))
             for i in range(0,2):
                 matrix_proportions[i,:] = confusion_mat[i,:]/float(confusion_mat[i,:].sum())
             names=['Hate','Neither']
