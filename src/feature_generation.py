@@ -7,18 +7,21 @@ import re,numpy as np
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as VS
 from textstat.textstat import *
 import pdb
+from tqdm import tqdm
 from ekphrasis.classes.preprocessor import TextPreProcessor
 from ekphrasis.classes.tokenizer import SocialTokenizer
 from ekphrasis.dicts.emoticons import emoticons
 from ekphrasis.dicts.noslang.slang import slang
 from indicnlp.syllable import  syllabifier
 from fastai.text import *
+from nltk.tokenize import word_tokenize
 from utils.hindi_tokenizer import HindiTokenizer
 from inltk.inltk import tokenize as hi_tokenizer
 from indicnlp import common
 from indicnlp import loader
 from nltk.tag import tnt
 from nltk.corpus import indian
+from functools import wraps
 
 class features():
 
@@ -37,7 +40,7 @@ class features():
         if lang == 'hi':
             self.ht = HindiTokenizer.Tokenizer()
             self.sentiment_analyzer = load_learner(path="../model/hi-sentiment")
-            self.stopwords = self.ht.stopwords()
+            self.stopwords = [x.strip() for x in open("../data/stopwords.txt").readlines()]	
             other_exclusions = ["#ff", "ff", "rt"]
             self.stopwords.extend(other_exclusions)
             self.stemmer = None
@@ -91,7 +94,9 @@ class features():
                 dicts=[emoticons,slang]
             )
 
-
+    def _dict_replace(self, wordlist, _dict):
+        return [_dict[w] if w in _dict else w for w in wordlist]
+        
     def preprocess(self,text_string):
         """
         Accepts a text string and replaces:
@@ -102,8 +107,6 @@ class features():
         This allows us to get standardized counts of urls and mentions
         Without caring about specific people mentioned
         """
-        def dict_replace(wordlist, _dict):
-            return [_dict[w] if w in _dict else w for w in wordlist]
 
         stp_tags = ['<allcaps>','</allcaps>','<hashtag>','</hashtag>','<repeated>','<date>','<elongated>','<url>','<email>','<percent>','<phone>','<date>','<number>']
         if self.lang == 'en':
@@ -112,7 +115,7 @@ class features():
             sent = self.text_processor.pre_process_doc(text_string)
             words = hi_tokenizer(input=sent , language_code=self.lang)
             for d in [emoticons,slang]:
-                    words = dict_replace(words, d)
+                    words = self._dict_replace(words, d)
 
         words = [w.replace('<','').replace('>','').replace('▁','').replace('।', '').replace('|','') for w in words if not w in stp_tags and (len(w) > 2 or w in string.punctuation)]
         text_string = " ".join(words)
@@ -135,6 +138,7 @@ class features():
             return tokens
         if self.lang=='hi':
             words = [w.replace('▁','').replace('।', '').replace('|','') for w in hi_tokenizer(input=tweet , language_code=self.lang) if w not in self.stopwords]
+#             words = [w.replace('।', '') for w in tweet.split(' ') if w not in self.stopwords]
             tokens = [self.ht.generate_stem_words(w) for w in words]
             return tokens
 
@@ -148,29 +152,33 @@ class features():
             return words
 
 
-    def get_tfidf(self,tweets):
-        vectorizer = TfidfVectorizer(
-            tokenizer=self.tokenize,
-            preprocessor=self.preprocess,
-            ngram_range=(1, 3),
-            stop_words=None,
-            use_idf=True,
-            smooth_idf=False,
-            norm=None,
-            decode_error='replace',
-            max_features=10000,
-            # min_df=5,
-            # max_df=0.75,
-            )
+    def get_tfidf(self,tweets,vectorizer=None):
+        if vectorizer is None:
+            print('Creating new TFIDF Vectorizer')
+            vectorizer = TfidfVectorizer(
+                tokenizer=self.tokenize,
+                preprocessor=self.preprocess,
+                ngram_range=(1, 3),
+                stop_words=None,
+                use_idf=True,
+                smooth_idf=False,
+                norm=None,
+                decode_error='replace',
+                max_features=10000,
+                # min_df=5,
+                # max_df=0.75,
+                )
 
-        #Construct tfidf matrix and get relevant scores
-        tfidf = vectorizer.fit_transform(tweets).toarray()
+            #Construct tfidf matrix and get relevant scores
+            tfidf = vectorizer.fit_transform(tweets).toarray()
+        else:
+            tfidf = vectorizer.transform(tweets).toarray()
         vocab = {v:i for i, v in enumerate(vectorizer.get_feature_names())}
         idf_vals = vectorizer.idf_
         idf_dict = {i:idf_vals[i] for i in vocab.values()} #keys are indices; values are IDF scores
-        return tfidf,idf_dict,vocab
+        return tfidf,idf_dict,vocab,vectorizer
 
-    def get_pos(self,tweets):
+    def get_pos(self,tweets,pos_vectorizer=None):
         #Get POS tags for tweets and save as a string
         tweet_tags = []
         if self.lang == 'en':
@@ -190,25 +198,29 @@ class features():
         # pdb.set_trace()
 
         #We can use the TFIDF vectorizer to get a token matrix for the POS tags
-        pos_vectorizer = TfidfVectorizer(
-            tokenizer=None,
-            lowercase=False,
-            preprocessor=None,
-            ngram_range=(1, 3),
-            stop_words=None,
-            use_idf=False,
-            smooth_idf=False,
-            norm=None,
-            decode_error='replace',
-            max_features=5000,
-            # min_df=5,
-            # max_df=0.75,
-            )
+        if pos_vectorizer is None:
+            print('Creating new POS Vectorizer')
+            pos_vectorizer = TfidfVectorizer(
+                tokenizer=None,
+                lowercase=False,
+                preprocessor=None,
+                ngram_range=(1, 3),
+                stop_words=None,
+                use_idf=False,
+                smooth_idf=False,
+                norm=None,
+                decode_error='replace',
+                max_features=5000,
+                # min_df=5,
+                # max_df=0.75,
+                )
 
-        #Construct POS TF matrix and get vocab dict
-        pos = pos_vectorizer.fit_transform(pd.Series(tweet_tags)).toarray()
+            #Construct POS TF matrix and get vocab dict
+            pos = pos_vectorizer.fit_transform(pd.Series(tweet_tags)).toarray()
+        else:
+            pos = pos_vectorizer.transform(pd.Series(tweet_tags)).toarray()
         pos_vocab = {v:i for i, v in enumerate(pos_vectorizer.get_feature_names())}
-        return pos,pos_vocab
+        return pos,pos_vocab, pos_vectorizer
 
 
 
@@ -298,26 +310,19 @@ class features():
             return features
 
 
-
-
-
-
-
-
-
-    def get_feature_array(self,tweets):
+    def get_feature_array(self,tweets,tfidf_vect=None,pos_vect=None):
         feats=[]
         print(self.lang)
-        for t in tweets:
+        for t in tqdm(tweets):
             feats.append(self.other_features(t))
         # return np.array(feats)
         other_features_names = ["FKRA", "FRE","num_syllables", "avg_syl_per_word", "num_chars", "num_chars_total", \
                                 "num_terms", "num_words", "num_unique_words", "vader neg","vader pos","vader neu", \
                                 "vader compound", "num_hashtags", "num_mentions", "num_urls", "is_retweet"]
 
-        tfidf,_,vocab = self.get_tfidf(tweets)
+        tfidf,_,vocab,tfidf_vect = self.get_tfidf(tweets,tfidf_vect)
         
-        pos,pos_vocab = self.get_pos(tweets)
+        pos,pos_vocab,pos_vect = self.get_pos(tweets,pos_vect)
 
         M = np.concatenate([tfidf,pos,feats],axis=1)
 
@@ -331,7 +336,7 @@ class features():
 
         feature_names = variables+pos_variables+other_features_names
 
-        return M,feature_names
+        return M,feature_names,tfidf_vect,pos_vect
 
 
 if __name__ == '__main__':

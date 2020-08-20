@@ -35,7 +35,7 @@ from utils.hindi_tokenizer import HindiTokenizer
 from inltk.inltk import tokenize as hi_tokenizer
 
 class CNN_LSTM:
-    def __init__(self, seed, epochs, batch_size, optimiser):
+    def __init__(self, seed=None, epochs=None, batch_size=None, optimiser=None):
         # seed = 8
         # epochs = 10
         # batch_size = 30
@@ -78,24 +78,26 @@ class CNN_LSTM:
 
     def predict(self,model_path,x):
         mod = load_model(model_path)
-        return mod.predict(x)
+        return [mod.predict_classes(x),mod.predict(x)]
 
 
 class ProcessData:
 
-    def __init__(self, df,lang):
-
+    def __init__(self, df,lang,max_seq_len=None):
 
         self.porter = PorterStemmer()
-        self.max_seq_len = None
+        self.max_seq_len = max_seq_len
         self.vocab_size = None
         self.classes = None
         self.lang = lang
-
-
-        (X_train, X_test, y_train, y_test) = self.get_data(df)
-        self.X_train, self.X_test, self.y_train, self.y_test = self.convert_text_to_examples(X_train, X_test, y_train, y_test)
+        self.df = df
         
+        if isinstance(self.df, list):
+        	self.X = self.list_to_examples(self.df)
+        else:
+	        (X_train, X_test, y_train, y_test) = self.get_data(self.df)
+	        self.X_train, self.X_test, self.y_train, self.y_test = self.convert_text_to_examples(X_train, X_test, y_train, y_test)
+
 
     def convert_text_to_examples(self, X_train, X_test, y_train, y_test):
 
@@ -106,8 +108,8 @@ class ProcessData:
         tokenizer_test = self.get_tokenizer(X_test)
 #         pdb.set_trace()
         self.max_seq_len = max([len(s.split()) for s in X_train])
-        a = {s:len(s.split()) for s in X_train}
-        v = [i for i in list(a.keys()) if a[i]==self.max_seq_len]
+        # a = {s:len(s.split()) for s in X_train}
+        # v = [i for i in list(a.keys()) if a[i]==self.max_seq_len]
         encoded = tokenizer.texts_to_sequences(X_train)
         encoded_test = tokenizer_test.texts_to_sequences(X_test)
 
@@ -120,8 +122,7 @@ class ProcessData:
 
 
     def get_data(self, df):
-
-
+        print(type(df))
         df = df.sample(n=len(df), random_state=42)
         self.classes = df["class"].unique()
         
@@ -180,3 +181,15 @@ class ProcessData:
         tokenizer = Tokenizer()
         tokenizer.fit_on_texts(documents)
         return tokenizer
+
+    def list_to_examples(self, X_list):
+    	x = np.array(X_list) 
+    	x = self.clean_doc(x)
+    	tokenizer = self.get_tokenizer(x)
+    	encoded = tokenizer.texts_to_sequences(x)
+    	X = sequence.pad_sequences(encoded, maxlen=self.max_seq_len)
+    	return X
+
+
+
+

@@ -11,6 +11,8 @@ import seaborn
 import pandas as pd
 import matplotlib.pyplot as plt
 import pickle
+from sklearn.metrics import accuracy_score
+import joblib
 
 class LR():
     X_train = None
@@ -18,7 +20,7 @@ class LR():
     y_train = None
     y_test = None
     
-    def train(self, X, y, max_iter, test_size, param_grid=[{}]):
+    def train(self, X, y, max_iter, test_size, param_grid, path):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y,shuffle=True, random_state=42, test_size=test_size, stratify=y)
         pipe = Pipeline(
                 [('select', SelectFromModel(LogisticRegression(class_weight='balanced',
@@ -35,21 +37,25 @@ class LR():
                            n_jobs=-1
                           )
         model = grid_search.fit(self.X_train, self.y_train)
+        print("Writing Model to file")
+        joblib.dump(model.best_estimator_, path)
+        print("Done!")
         return model
     
     def predict(self,model, X_test=None):
-        if not X_test:
+        if X_test is None:
             X_test = self.X_test
         y_pred = model.predict(X_test)
         return y_pred
     
     def gen_report(self, y_test = None, y_pred = None):
-        if not y_test:
+        if y_test is None:
             y_test = self.y_test
-        return classification_report(y_test, y_pred)
+        acc = accuracy_score(y_test, y_pred)
+        return acc, classification_report(y_test, y_pred)
     
     def gen_confusion_matrix(self, y_test = None, y_pred = None, classes = 3):
-        if not y_test:
+        if y_test is None:
             y_test = self.y_test
         confusion_mat = confusion_matrix(y_test, y_pred)
         
@@ -76,11 +82,6 @@ class LR():
             plt.xlabel(r'Predicted categories',fontsize=14)
             plt.tick_params(labelsize=12)
     
-    def save_model(model,path):
-        print("Writing Model to file")
-        pickle.dump(model, open(path, 'wb'))
-        print("Done!")
-        
-    def load_model(path):
+    def load_model(self,path):
         print('Loading Model from file')
-        return pickle.load(open(path, 'rb'))
+        return joblib.load(path)
