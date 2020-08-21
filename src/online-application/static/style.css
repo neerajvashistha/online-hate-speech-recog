@@ -47,8 +47,9 @@ body {
     font-family: monospace;
 }
 .comment-text {
-    padding-top: 10px;
-    font-size: 17px;
+    padding: 7px;
+    font-size: 14px;
+    width: 400px;
 }
 .form {
     margin-top: 50px;
