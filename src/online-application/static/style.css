@@ -44,12 +44,12 @@ body {
     border: 1px solid rgb(240, 237, 237);
     border-radius: 4px;
     margin: 15px 0px 5px 60px;
-    font-family: monospace;
+    font-family:  system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", sans-serif;
 }
 .comment-text {
     padding: 7px;
     font-size: 14px;
-    width: 400px;
+    width: 420px;
 }
 .form {
     margin-top: 50px;

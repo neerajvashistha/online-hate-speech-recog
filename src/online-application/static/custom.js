@@ -16,7 +16,7 @@ Vue.component('comment', {
                    height="90"
                 >
             </div>
-            <div>
+            <div style="padding-left:20px;">
               <div class="col-md-10 comment-text text-left" v-html="comment.username">             </div>
               <div class="col-md-10 comment-text text-left" v-html="comment.comment">             </div>
             </div>
