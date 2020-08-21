@@ -1,5 +1,5 @@
 // Initiatilze Pusher JavaScript library
-var pusher = new Pusher('1058463', {
+var pusher = new Pusher('6214a344fdd8b733dfd9', {
       cluster: 'eu'
     });
 
@@ -32,8 +32,8 @@ var app = new Vue({
       username: '',
       comment: '',
       comments: [],
-      happy: 0,
-      sad: 0,
+      hateful: 0,
+      offensive: 0,
       neutral: 0,
       socket_id: ""
     },
@@ -41,14 +41,14 @@ var app = new Vue({
 
         updateSentiments () {
             // Initialize the mood to 0
-            let [happy, neutral, sad] = [0, 0, 0];
+            let [hateful, neutral, offensive] = [0, 0, 0];
             
             // loop through all comments, then get the total of each mood
             for (comment of this.comments) {
                if (comment.sentiment > 0.4) {
-                  happy++;
+                  hateful++;
                } else if (comment.sentiment < 0) {
-                  sad++;
+                  offensive++;
                } else {
                    neutral++;
                }
@@ -57,12 +57,12 @@ var app = new Vue({
             const total_comments = this.comments.length;
             
             // Get the percentage of each mood
-            this.sad = ((sad/total_comments) * 100).toFixed();
-            this.happy = ((happy/total_comments) * 100).toFixed();
+            this.offensive = ((offensive/total_comments) * 100).toFixed();
+            this.hateful = ((hateful/total_comments) * 100).toFixed();
             this.neutral = ((neutral/total_comments) * 100).toFixed()
             
             // Return an object of the mood values
-            return {happy, neutral, sad}
+            return {hateful, neutral, offensive}
         },
         
         addComment () {
