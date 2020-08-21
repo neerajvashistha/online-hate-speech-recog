@@ -1,5 +1,5 @@
 // Initiatilze Pusher JavaScript library
-var pusher = new Pusher('6214a344fdd8b733dfd9', {
+var pusher = new Pusher('1058463', {
       cluster: 'eu'
     });
 
