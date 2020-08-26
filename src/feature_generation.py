@@ -22,6 +22,7 @@ from indicnlp import loader
 from nltk.tag import tnt
 from nltk.corpus import indian
 from functools import wraps
+from utils.emoji import emoji_clean
 
 class features():
 
@@ -109,6 +110,7 @@ class features():
         """
 
         stp_tags = ['<allcaps>','</allcaps>','<hashtag>','</hashtag>','<repeated>','<date>','<elongated>','<url>','<email>','<percent>','<phone>','<date>','<number>']
+        text_string = emoji_clean(text_string)
         if self.lang == 'en':
             words = self.text_processor.pre_process_doc(text_string)
         if self.lang == 'hi':
@@ -126,6 +128,7 @@ class features():
         parsed_text = re.sub(mention_regex, '', text_string)
         parsed_text = re.sub(space_pattern, ' ', parsed_text)
         parsed_text = re.sub(giant_url_regex, '', parsed_text)
+        parsed_text = re.sub(r"[-()\"#/@;:<>{}`+=~|.!?,]", '', parsed_text)
 #         pdb.set_trace()
         return parsed_text
 

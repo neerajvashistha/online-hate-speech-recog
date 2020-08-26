@@ -45,9 +45,9 @@ var app = new Vue({
             
             // loop through all comments, then get the total of each mood
             for (comment of this.comments) {
-               if (comment.sentiment > 0.4) {
+               if (comment.sentiment == 1) {
                   hateful++;
-               } else if (comment.sentiment < 0) {
+               } else if (comment.sentiment == 2) {
                   offensive++;
                } else {
                    neutral++;
