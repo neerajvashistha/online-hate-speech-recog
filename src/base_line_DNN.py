@@ -1,5 +1,5 @@
 import os, re, string
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+# os.environ["CUDA_VISIBLE_DEVICES"]="0"
 import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing import sequence
@@ -167,7 +167,8 @@ class CNN_LSTM:
 
     def predict(self,model_path,x):
         mod = load_model(model_path)
-        return [mod.predict_classes(x),mod.predict(x)]
+        op = mod.predict(x)
+        return [np.argmax(op, axis=1), op]
     
     def plot_taining_graphs(self, history):
         plt.plot(history.history['acc'])
@@ -245,7 +246,7 @@ class ProcessData:
     def clean_doc(self,documents):
         documents = documents.tolist()
         clean_doc_list = []
-        pdb.set_trace()
+#         pdb.set_trace()
         feat = fg.features(lang=self.lang)
         for doc in tqdm(documents):
             tweet = feat.preprocess(doc)

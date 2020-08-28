@@ -47,13 +47,16 @@ var app = new Vue({
             for (comment of this.comments) {
                if (comment.sentiment == 1) {
                   hateful++;
+                  alert("Your Previous comment was Hateful in nature, \nplease respect each other in the online diaspora");
                } else if (comment.sentiment == 2) {
                   offensive++;
+                  alert("Your Previous comment was offensive in nature, \nplease respect each other in the online diaspora");
                } else {
                    neutral++;
+                   alert("Your Previous comment was Hateful in nature, \nplease respect each other in the online diaspora");
                }
             }
-            
+           
             const total_comments = this.comments.length;
             
             // Get the percentage of each mood
