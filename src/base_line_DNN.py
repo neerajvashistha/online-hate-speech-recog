@@ -38,6 +38,9 @@ class CNN_LSTM:
 
 
     def get_model(self, classes, vocabulary_size=1, input_length=1,param=None):
+        """
+        basic 1D CNN + LSTM network
+        """
         try:
             if self.optimiser == 'sgd':
                 opt = SGD(lr=self.lr_rate)
@@ -59,6 +62,9 @@ class CNN_LSTM:
         except ValueError:
             return None
     def get_model_2(self, classes, vocabulary_size=1, input_length=1, param=None):
+        """
+        https://arxiv.org/pdf/1602.02410.pdf
+        """
         try:
             filter_sizes = [3,4,5]
             num_filters = 64
@@ -147,7 +153,9 @@ class CNN_LSTM:
             return None
 
     def train(self, X, y, model, weights_path, d_class_weights):
-
+        """
+        train model on given weights, return model
+        """
         np.random.seed(self.seed)
         checkpoint = ModelCheckpoint(weights_path, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
         # checkpoint = ModelCheckpoint(weights_path,monitor='val_loss',mode='min',save_best_only=True,verbose=1)
@@ -162,15 +170,24 @@ class CNN_LSTM:
                          callbacks=callbacks_list)
 
     def test(self,model,X_test, Y_test):
+        """
+        expects model, input test sequence and Y returns evalaution
+        """
         scores = model.evaluate(X_test, Y_test, batch_size=self.batch_size, verbose=1)
         return scores
 
     def predict(self,model_path,x):
+        """
+        expects model path and sample instance in list format, load model and gives prediction 
+        """
         mod = load_model(model_path)
         op = mod.predict(x)
         return [np.argmax(op, axis=1), op]
     
     def plot_taining_graphs(self, history):
+        """
+        plots graphs for training and validation
+        """
         plt.plot(history.history['acc'])
         plt.plot(history.history['val_acc'])
         plt.title('model accuracy')
@@ -201,14 +218,16 @@ class ProcessData:
         self.df = df
         
         if isinstance(self.df, list):
-        	self.X = self.list_to_examples(self.df)
+            self.X = self.list_to_examples(self.df)
         else:
-	        (X_train, X_test, y_train, y_test) = self.get_data(self.df)
-	        self.X_train, self.X_test, self.y_train, self.y_test, self.class_weight = self.convert_text_to_examples(X_train, X_test, y_train, y_test)
+            (X_train, X_test, y_train, y_test) = self.get_data(self.df)
+            self.X_train, self.X_test, self.y_train, self.y_test, self.class_weight = self.convert_text_to_examples(X_train, X_test, y_train, y_test)
 
 
     def convert_text_to_examples(self, X_train, X_test, y_train, y_test):
-
+        """
+        expects clean list of X_train, y_train, returns sequences 
+        """
         vocabulary = set(" ".join(X_train).split())
         self.vocab_size = len(vocabulary) + 1
 
@@ -233,6 +252,9 @@ class ProcessData:
 
 
     def get_data(self, df):
+        """
+        expects a dataframe of 'text' and 'class' columns, cleans the doc and returns a split of test and train
+        """
 #         print(type(df))
         df = df.sample(n=len(df), random_state=42)
         self.classes = df["class"].unique()
@@ -244,6 +266,9 @@ class ProcessData:
         return X_train, X_test, y_train, y_test
 
     def clean_doc(self,documents):
+        """
+        Utlises feature generation class to clean the text, create tokens and returns a list
+        """
         documents = documents.tolist()
         clean_doc_list = []
 #         pdb.set_trace()
@@ -259,62 +284,24 @@ class ProcessData:
             clean_doc_list.append(" ".join(token))
         return clean_doc_list
     
-#     def clean_doc_old(self, documents):
-#         ht = HindiTokenizer.Tokenizer()
-#         documents = documents.tolist()
-#         pdb.set_trace()
-#         # clean docs
-#         clean_doc_list = []
-# #         print("Starting cleaning %s documents" % len(documents))
-#         for doc in tqdm(documents):
-#             # remove HTML tags
-#             doc = re.compile(r'<[^>]+>').sub('', doc)
-#             # replace all newlines and tabs
-#             doc = doc.replace('\\n', ' ').replace('\\r', ' ').replace('\\t', ' ').replace('_',' ').replace('।', '').replace('|','')
-#             # add missing space after full stops and commas
-#             doc = re.sub(r'(?<=[.,])(?=[^\s])', r' ', doc)
-#             # create tokens
-#             if self.lang == 'en':                
-#                 tokens = word_tokenize(doc)
-#             if self.lang == 'hi':
-# #                 tokens = [w.replace('▁','').replace('।', '').replace('|','') for w in hi_tokenizer(input=doc , language_code=self.lang)]
-#                 tokens = word_tokenize(doc)
-#             # downcase
-#             tokens = [w.lower() for w in tokens]
-#             # regexp
-#             re_punc = re.compile('[%s]' % re.escape(string.punctuation))            
-#             stripped = [re_punc.sub('', w) for w in tokens]
-#             # remove non-alphabetic tokens
-#             if self.lang == 'en':
-#                 words = [word for word in stripped if word.isalpha()]
-#             if self.lang == 'hi':
-#                 words = stripped
-#             # remove stopwords
-#             if self.lang == 'en':
-#                 stop_words = set(stopwords.words('english'))
-#                 words = [w for w in words if not w in stop_words]
-#                 # reduce word to base
-#                 stemmed = [self.porter.stem(word) for word in words]
-#             if self.lang == 'hi':
-#                 stop_words = ht.stopwords()
-#                 words = [w for w in words if not w in stop_words]
-#                 stemmed = [ht.generate_stem_words(w) for w in words]
-#             stemmed = list(filter(str.strip, stemmed))
-#             clean_doc_list.append(" ".join(stemmed))
-#         return clean_doc_list
-    
     def get_tokenizer(self, documents):
+        """
+        returns a tokenizer
+        """
         tokenizer = Tokenizer()
         tokenizer.fit_on_texts(documents)
         return tokenizer
 
     def list_to_examples(self, X_list):
-    	x = np.array(X_list) 
-    	x = self.clean_doc(x)
-    	tokenizer = self.get_tokenizer(x)
-    	encoded = tokenizer.texts_to_sequences(x)
-    	X = sequence.pad_sequences(encoded, maxlen=self.max_seq_len)
-    	return X
+        """
+        for single or list of smaples return a sequence after preprocessing
+        """
+        x = np.array(X_list) 
+        x = self.clean_doc(x)
+        tokenizer = self.get_tokenizer(x)
+        encoded = tokenizer.texts_to_sequences(x)
+        X = sequence.pad_sequences(encoded, maxlen=self.max_seq_len)
+        return X
 
 
 

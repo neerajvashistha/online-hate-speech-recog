@@ -32,7 +32,7 @@ class features():
         self.stemmer = None
         self.sentiment_analyzer = None
         self.text_processor = None        
-        INDIC_NLP_RESOURCES=r"/homes/nv304/online-hate-speech-recog/model/indic_nlp_resources/"        
+        INDIC_NLP_RESOURCES=r"../model/indic_nlp_resources/"        
         common.set_resources_path(INDIC_NLP_RESOURCES)
         self.pos_tagger = None
 
@@ -100,13 +100,7 @@ class features():
         
     def preprocess(self,text_string):
         """
-        Accepts a text string and replaces:
-        1) urls with URLHERE
-        2) lots of whitespace with one instance
-        3) mentions with MENTIONHERE
-
-        This allows us to get standardized counts of urls and mentions
-        Without caring about specific people mentioned
+        Accepts a text string and replaces, urls with URLHERE, whitespace, and metions with MENTIONHERE
         """
 
         stp_tags = ['<allcaps>','</allcaps>','<hashtag>','</hashtag>','<repeated>','<date>','<elongated>','<url>','<email>','<percent>','<phone>','<date>','<number>']
@@ -229,16 +223,7 @@ class features():
 
     def count_twitter_objs(self,text_string):
         """
-        Accepts a text string and replaces:
-        1) urls with URLHERE
-        2) lots of whitespace with one instance
-        3) mentions with MENTIONHERE
-        4) hashtags with HASHTAGHERE
-
-        This allows us to get standardized counts of urls and mentions
-        Without caring about specific people mentioned.
-
-        Returns counts of urls, mentions, and hashtags.
+        Accepts a text string and replaces urls with URLHERE, whitespaces, MENTIONHERE HASHTAGHERE
         """
         space_pattern = '\s+'
         giant_url_regex = ('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|'
@@ -252,9 +237,9 @@ class features():
         return(parsed_text.count('URLHERE'),parsed_text.count('MENTIONHERE'),parsed_text.count('HASHTAGHERE'))
 
     def other_features(self,tweet):
-        """This function takes a string and returns a list of features.
-        These include Sentiment scores, Text and Readability scores,
-        as well as Twitter specific features"""
+        """
+        expects text, returns a feature vector, for english and hindi
+        """
 
         if self.lang == 'en':
             sentiment = self.sentiment_analyzer.polarity_scores(tweet)
@@ -362,5 +347,5 @@ if __name__ == '__main__':
     # print(M[6],len(names))
     fe = features(lang='hi')
     tweets = ["वाशिंगटन: दुनिया के सबसे शक्तिशाली देश के राष्ट्रपति बराक ओबामा ने प्रधानमंत्री नरेंद्र मोदी के संदर्भ में 'टाइम' पत्रिका में लिखा, नरेंद्र मोदी ने अपने बाल्यकाल में अपने परिवार की सहायता करने के लिए अपने पिता की चाय बेचने में मदद की थी। आज वह दुनिया के सबसे बड़े लोकतंत्र के नेता हैं और गरीबी से प्रधानमंत्री तक की उनकी जिंदगी की कहानी भारत के उदय की गतिशीलता और क्षमता को परिलक्षित करती है।"]    
-    (M,names)=fe.get_feature_array(tweets)
-    print(M,len(names))
+    (M,feature_names,tfidf_vect,pos_vect)=fe.get_feature_array(tweets)
+    print(M,len(feature_names))

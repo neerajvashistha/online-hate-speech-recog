@@ -21,6 +21,10 @@ class LR():
     y_test = None
     
     def train(self, X, y, max_iter, test_size, param_grid, path):
+        """
+        Trains a logistic regression model, expects feature vector in X, suitable test split in test_size 
+        param_grid for paramters and path to save the model
+        """
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y,shuffle=True, random_state=42, test_size=test_size, stratify=y)
         pipe = Pipeline(
                 [('select', SelectFromModel(LogisticRegression(class_weight='balanced',
@@ -43,18 +47,27 @@ class LR():
         return model
     
     def predict(self,model, X_test=None):
+        """
+        makes prediction on X_test
+        """
         if X_test is None:
             X_test = self.X_test
         y_pred = model.predict(X_test)
         return y_pred
     
     def gen_report(self, y_test = None, y_pred = None):
+        """
+        generate accuracy and classification report with Precision, recall, f1 scores 
+        """
         if y_test is None:
             y_test = self.y_test
         acc = accuracy_score(y_test, y_pred)
         return acc, classification_report(y_test, y_pred)
     
     def gen_confusion_matrix(self, y_test = None, y_pred = None, classes = 3):
+        """
+        generates confusion matrix, for 2, 3 class data
+        """
         if y_test is None:
             y_test = self.y_test
         confusion_mat = confusion_matrix(y_test, y_pred)

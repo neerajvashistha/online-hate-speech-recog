@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, jsonify, render_template, request
 from textblob import TextBlob
 from flask import flash
