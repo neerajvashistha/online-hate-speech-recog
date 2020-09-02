@@ -7,7 +7,7 @@ import pusher
 import os
 import sys
 import pandas as pd
-sys.path.insert(0,'..')
+
 
 from base_line_DNN import CNN_LSTM as network
 from base_line_DNN import ProcessData
@@ -58,7 +58,7 @@ def add_comment():
     if detect(comment)=='en':
         print('English')
         test_data = ProcessData(df=list(comment), lang='en', max_seq_len=138)
-        out = net.predict(model_path='../../model/en_weights.best.hdf5',x=test_data.X)
+        out = net.predict(model_path='../model/en_weights.best.hdf5',x=test_data.X)
         # Get the sentiment of a comment
     #     text = TextBlob(comment)
         print(type(out[0][0]), out[0][0])
@@ -67,8 +67,8 @@ def add_comment():
         df.to_csv('new_train.csv', header=False, mode='a', index=False)
     else:
         print('Hindi')
-        test_data = ProcessData(df=list(comment), lang='hi', max_seq_len=105)
-        out = net.predict(model_path='../../model/hi_weights.best.hdf5',x=test_data.X)
+        test_data = ProcessData(df=list(comment), lang='hi', max_seq_len=104)
+        out = net.predict(model_path='../model/hi_weights.best.hdf5',x=test_data.X)
         # Get the sentiment of a comment
     #     text = TextBlob(comment)
         print(type(out[0][0]), out[0][0])
@@ -81,7 +81,7 @@ def add_comment():
         "comment": comment,
         "sentiment": sentiment,
     }
-    
+    print(comment_data)
     #  Trigger an event to Pusher
     pusher.trigger(
         "live-comments", 'new-comment', comment_data, socket_id

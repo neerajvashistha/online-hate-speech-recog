@@ -53,7 +53,7 @@ var app = new Vue({
                   alert("Your Previous comment was offensive in nature, \nplease respect each other in the online diaspora");
                } else {
                    neutral++;
-                   alert("Your Previous comment was Hateful in nature, \nplease respect each other in the online diaspora");
+//                    alert("Your Previous comment was Hateful in nature, \nplease respect each other in the online diaspora");
                }
             }
            
