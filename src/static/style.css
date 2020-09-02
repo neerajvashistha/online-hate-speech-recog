@@ -1,0 +1,63 @@
+
+body {
+    width: 100%;
+    height: 100%;
+}
+.grid-container {
+    width: 600px;
+    margin: auto;
+    display: grid;
+    grid-template-rows: 250px auto auto 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 20px;
+    grid-template-areas:
+        /*'. header .'*/
+        'content content content'
+        'mood mood mood'
+        'comment-section comment-section comment-section'
+        'form-section form-section form-section';
+
+}
+.content {
+    grid-area: content;
+}
+.comment-section {
+    grid-area: comment-section;
+}
+.content-text {
+   font-style: oblique;
+   font-size: 24px;
+   padding-top: 70px;
+   padding-bottom: 30px;
+}
+.mood {
+    grid-area: mood;
+}
+/*.header {
+    grid-area: header;
+}*/
+.form-section {
+    grid-area: form-section;
+    padding-bottom: 50px;
+}
+.comment {
+    border: 1px solid rgb(240, 237, 237);
+    border-radius: 4px;
+    margin: 15px 0px 5px 60px;
+    font-family:  system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", sans-serif;
+}
+.comment-text {
+    padding: 7px;
+    font-size: 14px;
+    width: 420px;
+}
+.form {
+    margin-top: 50px;
+}
+.mood-percentage {
+   border: 1px solid gray;
+   min-height: 50px;
+   padding-top: 10px;
+   font-size: 30px;
+   font-weight: bolder;
+}
